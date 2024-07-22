@@ -39,6 +39,13 @@ function plugin_routerconfigs_install () {
 	api_plugin_register_hook('routerconfigs', 'poller_bottom',         'routerconfigs_poller_bottom',        'setup.php');
 	api_plugin_register_hook('routerconfigs', 'page_head',             'routerconfigs_page_head',            'setup.php');
 
+
+
+        api_plugin_register_hook('routerconfigs', 'device_action_array',  'routerconfigs_device_action_array', 'setup.php');
+        api_plugin_register_hook('routerconfigs', 'device_action_execute','routerconfigs_device_action_execute', 'setup.php');
+        api_plugin_register_hook('routerconfigs', 'device_action_prepare','routerconfigs_device_action_prepare', 'setup.php');
+
+
 	api_plugin_register_realm('routerconfigs', 'router-devices.php,router-accounts.php,router-backups.php,router-compare.php,router-devtypes.php', __('Router Configs', 'routerconfigs'), 1);
 
 	routerconfigs_setup_table_new();
@@ -234,6 +241,13 @@ function routerconfigs_check_upgrade() {
 			}
 		}
 
+		if (cacti_version_compare($old, '1.6.0', '<')) {
+			if (!db_column_exists('pulugin_routerconfigs_devices','tftpserver')) {
+				db_execute('ALTER TABLE plugin_routerconfigs_devices
+					ADD COLUMN `tftpserver` varchar(255)');
+			}
+		}
+
 		AddDeviceTypes();
 
 		db_execute("UPDATE plugin_config
@@ -309,6 +323,7 @@ function routerconfigs_setup_table_new() {
 	$data['columns'][] = array('name' => 'sleep', 'type' => 'int(11)', 'NULL' => true);
 	$data['columns'][] = array('name' => 'timeout', 'type' => 'int(11)', 'NULL' => true);
 	$data['columns'][] = array('name' => 'debug', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'tftpserver', 'type' => 'varchar(255)', 'NULL' => true);
 
 	$data['keys'][] = array('name' => 'enabled', 'columns' => 'enabled');
 	$data['keys'][] = array('name' => 'schedule', 'columns' => 'schedule');
@@ -344,7 +359,6 @@ function routerconfigs_setup_table_new() {
 	$data['columns'][] = array('name' => 'elevated', 'type' => 'varchar(3)', 'NULL' => true);
 
 	api_plugin_db_table_create ('routerconfigs', 'plugin_routerconfigs_devicetypes', $data);
-
 	AddDeviceTypes();
 }
 
@@ -598,4 +612,140 @@ function routerconfigs_show_tab() {
 			href="' . $config['url_path'] . 'plugins/routerconfigs/router-devices.php">
 			<img src="' . ($selected_theme == 'classic' ? get_classic_tabimage(__('Routers', 'routerconfig'), $down):'#') . '" alt="' . __esc('RouterConfigs', 'routerconfigs') . '"></a>';
 	}
+}
+
+function routerconfigs_device_action_array($device_action_array) {
+        $device_action_array['routerconfigs'] = 'Add to Routerconfigs';
+        
+        return $device_action_array;
+}
+
+function routerconfigs_device_action_execute($action) {
+        global $config;
+        
+                
+        if ($action != 'routerconfigs') {
+                return $action;
+        } 
+                
+
+        $selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
+
+        if ($selected_items != false) {
+                for ($i=0; ($i < count($selected_items)); $i++) {
+                       cacti_log("execute item " . $selected_items[$i]);
+					   
+					   $host=db_fetch_row('SELECT * FROM host WHERE id=' . $selected_items[$i], false);
+					   		$save['id'] = '';
+		
+			cacti_log($host['hostname'] . " " . $host['description']);
+
+			if (isset_request_var('enabled')) {
+				$save['enabled'] = 'on';
+			} else {
+				$save['enabled'] = '';
+			}
+
+			$save['hostname']    = str_replace('_', ' ',$host['description']);
+			$save['ipaddress']   = $host['hostname'];
+			$save['directory']   = get_nfilter_request_var('directory');
+			$save['tftpserver']  = get_nfilter_request_var('tftpserver');
+			$save['account']     = get_nfilter_request_var('account');
+			$save['devicetype']  = get_nfilter_request_var('devicetype');
+			$save['schedule']    = get_nfilter_request_var('schedule');
+			$save['connecttype'] = get_nfilter_request_var('connecttype');
+			$save['timeout']     = get_nfilter_request_var('timeout');
+			$save['sleep']       = get_nfilter_request_var('sleep');
+			$save['elevated']    = get_nfilter_request_var('elevated');
+
+			$id = sql_save($save, 'plugin_routerconfigs_devices', 'id');
+						
+
+                }
+        }
+                
+		raise_message('devices_created', __('Devices created.', 'routerconfigs'), MESSAGE_LEVEL_INFO);
+
+		header('Location: router-devices.php?header=false');
+                        
+        return $action;
+}
+                
+function routerconfigs_device_action_prepare($save) {
+		global $rc_device_edit_fields;
+        
+		$rc_device_edit_fields_bulk=$rc_device_edit_fields;
+		unset($rc_device_edit_fields_bulk['hostname']);
+		unset($rc_device_edit_fields_bulk['ipaddress']);
+		
+        if ($save['drp_action'] != 'routerconfigs') {
+                return $save;
+        }
+		
+		$not_list='';
+		$list_names=explode('</li>',$save['host_list']);
+		$host_list=array();
+		$host_array=array();
+		
+		for($i=0; $i<count($save['host_array']);$i++)
+		{
+			 $exists=db_fetch_row('select count(*) from host join plugin_routerconfigs_devices on host.hostname = plugin_routerconfigs_devices.ipaddress where host.id=' . $save['host_array'][$i], false);
+			//var_dump($exists);
+			if ($exists !=false)
+			{
+				if($exists["count(*)"]=="1")
+				{
+					$not_list=$not_list . $list_names[$i];
+				}
+				else
+				{
+					array_push($host_list,$list_names[$i]);
+					array_push($host_array,$save['host_array'][$i]);
+				}
+			}
+			else
+			{
+				array_push($host_list,$save['host_list'][$i]);
+				array_push($host_array,$save['host_array'][$i]);
+			}
+		}
+		//var_dump($list);
+		
+		$save['host_list']=implode(" ",$host_list);
+		$save['host_array']=$host_array;
+		
+		//var_dump($save);
+		print	"<tr>
+                <td colspan='2' class='textArea'>
+                        <p>" . __('Click \'Continue\' to add all following devices to RouterConfigs.', 'routerconfigs') . "</p>
+                        <div class='itemlist'><ul>" . $save['host_list'] . "</ul></div>
+                </td>
+        </tr>";
+		
+		if(strlen($not_list)>0)
+		{
+			print
+			"
+		<tr>
+                <td colspan='2' class='textArea'>
+                        <p>" . __('The following devices will not be added to RouterConfigs because there is already a RouterConfigs device with the same IP.', 'routerconfigs') . "</p>
+                        <div class='itemlist'><ul>" . $not_list . "</ul></div>
+                </td>
+        </tr>"
+		;}
+		
+		
+		print "<tr><td>";
+		
+		$account = array(); 
+		draw_edit_form(
+		array(
+			'config' => array('no_form_tag' => true, 'form_name' => 'chk'),
+			'fields' => inject_form_variables($rc_device_edit_fields_bulk, $account)
+		)
+		);
+		
+		print "</td></tr>";
+                                
+        return $save;
 }

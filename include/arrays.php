@@ -65,6 +65,7 @@ $rc_connection_types = array(
 $rc_schedules_backup = array(
 	RCONFIG_BACKUP_DAILY   => __('Daily', 'routerconfigs'),
 	RCONFIG_BACKUP_WEEKLY  => __('Weekly', 'routerconfigs'),
+	RCONFIG_BACKUP_10DAYS  => __('10 Days', 'routercoonfigs'),
 	RCONFIG_BACKUP_MONTHLY => __('Monthly', 'routerconfigs'),
 );
 
@@ -187,6 +188,14 @@ $rc_device_edit_fields = array(
 		'description' => __('This is the relative directory structure used to store the configs.', 'routerconfigs'),
 		'value' => '|arg1:directory|',
 		'max_length' => '255',
+	),
+	'tftpserver' => array(
+		'method' => 'textbox',
+		'friendly_name' => __('TFTP Server ip','routerconfigs'),
+		'description' => __('The TFTP server','routerconfigs'),
+		'value' => '|arg1:tftpserver|',
+		'max_length' => '255',
+		'default' => '',
 	),
 	'schedule' => array(
 		'method' => 'drop_array',

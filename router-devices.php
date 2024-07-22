@@ -301,6 +301,7 @@ function save_devices () {
 	$save['timeout']     = get_nfilter_request_var('timeout');
 	$save['sleep']       = get_nfilter_request_var('sleep');
 	$save['elevated']    = get_nfilter_request_var('elevated');
+	$save['tftpserver']  = get_nfilter_request_var('tftpserver');
 
 	$id = sql_save($save, 'plugin_routerconfigs_devices', 'id');
 
@@ -460,7 +461,8 @@ function show_devices() {
 			rc_d.account, rc_d.lastchange, rc_d.device,
 			rc_d.lastuser, rc_d.schedule, rc_d.lasterror,
 			rc_d.lastbackup, rc_d.nextbackup, rc_d.lastattempt,
-			rc_d.nextattempt, IFNULL(rc_dt.name,'') as devicetype,
+			rc_d.nextattempt, rc_d.tftpserver,
+			IFNULL(rc_dt.name,'') as devicetype,
 			rc_dt.id as devicetypeid,
 			IF(IFNULL(rc_d.connecttype,'')='',
 				IF(IFNULL(rc_dt.connecttype,'')='',
@@ -658,6 +660,12 @@ function show_devices() {
 			'sort' => 'ASC',
 			'tip' => __('The connection type for this device', 'routerconfigs')
 		),
+		'tftpserver' => array(
+			'display' => __('TFTP Server', 'routerconfigs'),
+			'align' => 'left',
+			'sort' => 'ASC',
+			'tip' => __('The TFTP Server where the file should be stored','routerconfigs'),
+		),
 		'nosort_configs' => array(
 			'display' => __('Configs', 'routerconfigs'),
 			'align' => 'left',
@@ -769,6 +777,9 @@ function show_devices() {
 			if (empty($row['devicetype'])) {
 				$row['devicetype'] = __('Auto-Detect', 'routerconfigs');
 			}
+			if (empty($row['tftpserver'])) {
+				$row['tftpserver'] = 'Default' ;
+			}
 
 			$enabled = ($row['enabled'] == 'on' ? '<span class="deviceUp">' . __('Yes', 'routerconfigs') . '</span>' : '<span class="deviceDown">' . __('No', 'routerconfigs') . '</span>');
 
@@ -808,6 +819,7 @@ function show_devices() {
 			form_selectable_cell($state, $row['id'], '10%', 'text-align:center');
 			form_selectable_cell(filter_value($row['devicetype'], get_request_var('filter'), 'router-devtypes.php?&action=edit&id=' . $row['devicetypeid']), $row['id'], '10%');
 			form_selectable_cell(filter_value($row['connecttype'], get_request_var('filter')), $row['id'], '10%');
+			form_selectable_cell($row['tftpserver'], $row['id'], '10%');
 
 			form_selectable_cell(filter_value(__('Current', 'routerconfig'), get_request_var('filter'), 'router-devices.php?action=viewconfig&id=' . $row['id']).' - '.filter_value(__('Backups (%s)', $total, 'routerconfigs'), get_request_var('filter'), 'router-backups.php?device=' . $row['id']), $row['id'], '14%');
 

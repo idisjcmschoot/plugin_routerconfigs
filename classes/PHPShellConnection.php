@@ -38,7 +38,7 @@ abstract class PHPShellConnection extends PHPConnection {
 	}
 
 	function Download($filename, $backuppath) {
-		$tftpserver = read_config_option('routerconfigs_tftpserver');
+
 		$command = $this->deviceType['copytftp'];
 
 		if (stristr($command, '%SERVER%')) {
@@ -77,7 +77,11 @@ abstract class PHPShellConnection extends PHPConnection {
 		$sent_srv   = false;
 		$sent_dst   = false;
 
-		$tftpserver = read_config_option('routerconfigs_tftpserver');
+
+		$tftpserver = $this->device['tftpserver'] ;
+		if(empty($tftpserver)){
+			$tftpserver = read_config_option('routerconfigs_tftpserver');
+		}
 
 		while (($ret == 0 || $ret == 8) && $x<30 &&
 			$this->prompt() != LinePrompt::Enabled &&

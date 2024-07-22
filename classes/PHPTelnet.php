@@ -1,5 +1,4 @@
-<?php
-/*
+<?php /*
  +-------------------------------------------------------------------------+
  | Copyright (C) 2004-2024 The Cacti Group                                 |
  |                                                                         |
@@ -109,6 +108,8 @@ class PHPTelnet extends PHPShellConnection implements ShellTelnet {
 				$this->Sleep();
 
 				fputs($this->stream, $this->conn2);
+				if($this->deviceType['promptuser']!="")
+				{
 
 				$this->Log("Looking for " . $this->deviceType['promptuser']);
 
@@ -157,6 +158,11 @@ class PHPTelnet extends PHPShellConnection implements ShellTelnet {
 				$this->Log("DEBUG: Sending username: $this->user");
 
 				fputs($this->stream, "$this->user\r");
+				}
+				else
+				{
+				$this->Log("DEBUG: No userprompt configured, skip to passord");
+				}
 
 				$x = 0;
 

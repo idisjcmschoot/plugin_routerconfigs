@@ -399,9 +399,9 @@ function plugin_routerconfigs_download_config(&$device, $backuptime, $buffer_deb
 
 	$backuppath = plugin_routerconfigs_dir(trim(read_config_option('routerconfigs_backup_path')));
 	$archivepath = plugin_routerconfigs_dir(trim(read_config_option('routerconfigs_archive_path')));
-	$tftpserver = read_config_option('routerconfigs_tftpserver');
+//	$tftpserver = read_config_option('routerconfigs_tftpserver');
 
-	$filename = $device['hostname'];
+	$filename = preg_replace('/[^A-Z0-9]+/i', "_",$device['hostname']);
 
 	if (strlen($dir) && $dir[0] == '/') {
 		$dir = substr($dir,1);
@@ -447,6 +447,7 @@ function plugin_routerconfigs_download_config(&$device, $backuptime, $buffer_deb
 		}
 	}
 
+	$tftpserver = plugin_routerconfigs_getfirst(array($device['tftpserver'], read_config_option('routerconfigs_tftpserver'), ''));
 	$timeout  = plugin_routerconfigs_getfirst(array($device['timeout'], $devicetype['timeout'], read_config_option('timeout'), 1));
 	$sleep    = plugin_routerconfigs_getfirst(array($device['sleep'], $devicetype['sleep'], read_config_option('sleep'), 125000));
 	$type_dev = plugin_routerconfigs_getfirst(array($device['connecttype'], $devicetype['connecttype'], read_config_option('routerconfigs_connecttype'), 'both'), true);
@@ -787,7 +788,7 @@ function plugin_routerconfigs_date_from_time($time) {
 	return ($time > 0) ? date(CACTI_DATE_TIME_FORMAT, $time) : '';
 }
 
-function plugin_routerconfigs_nexttime($time, $schedule, $multipler, $hour = 0) {
+function plugin_routerconfigs_nexttime($time, $multipler, $schedule, $hour = 0) {
 	if ($schedule == 0 || $multipler == 0) {
 		return 0;
 	} else {
