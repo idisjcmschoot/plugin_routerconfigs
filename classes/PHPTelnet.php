@@ -161,7 +161,7 @@ class PHPTelnet extends PHPShellConnection implements ShellTelnet {
 				}
 				else
 				{
-				$this->Log("DEBUG: No userprompt configured, skip to passord");
+					$this->Log("DEBUG: No userprompt configured, skip to password");
 				}
 
 				$x = 0;

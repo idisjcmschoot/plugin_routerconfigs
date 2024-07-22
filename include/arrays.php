@@ -65,7 +65,7 @@ $rc_connection_types = array(
 $rc_schedules_backup = array(
 	RCONFIG_BACKUP_DAILY   => __('Daily', 'routerconfigs'),
 	RCONFIG_BACKUP_WEEKLY  => __('Weekly', 'routerconfigs'),
-	RCONFIG_BACKUP_10DAYS  => __('10 Days', 'routercoonfigs'),
+	RCONFIG_BACKUP_10DAYS  => __('10 Days', 'routerconfigs'),
 	RCONFIG_BACKUP_MONTHLY => __('Monthly', 'routerconfigs'),
 );
 
