@@ -125,7 +125,7 @@ function view_device_config() {
 }
 
 function actions_devices() {
-	global $rc_device_actions, $config;
+	global $rc_device_actions, $rc_device_edit_fields, $config;
 	if (isset_request_var('selected_items')) {
 		$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
 
@@ -155,6 +155,39 @@ function actions_devices() {
 						WHERE id = ?',
 						array($selected_items[$i]));
 				}
+
+				break;
+			case RCONFIG_DEVICE_EDIT:
+
+			       if (isset_request_var('enabled')) {
+			                $save['enabled'] = 'on';
+			        } else {
+			                $save['enabled'] = '';
+			        }
+
+			        $save['directory']   = get_nfilter_request_var('directory');
+			        $save['account']     = get_nfilter_request_var('account');
+			        $save['devicetype']  = get_nfilter_request_var('devicetype');
+			        $save['schedule']    = get_nfilter_request_var('schedule');
+			        $save['connecttype'] = get_nfilter_request_var('connecttype');
+			        $save['timeout']     = get_nfilter_request_var('timeout');
+			        $save['sleep']       = get_nfilter_request_var('sleep');
+			        $save['elevated']    = get_nfilter_request_var('elevated');
+			        $save['tftpserver']  = get_nfilter_request_var('tftpserver');
+
+
+				db_execute("UPDATE plugin_routerconfigs_devices
+						SET enabled='" .$save['enabled'] .
+						"',directory='" . $save['directory'] . 
+						"',account='" . $save['account'] .
+						"',devicetype='" .$save['devicetype'].
+						"',schedule='" .$save['schedule'].
+						"',connecttype='" . $save['connecttype'].
+						"',timeout='".$save['timeout'].
+						"',sleep='".$save['sleep'].
+						"',elevated='".$save['elevated'].
+						"',tftpserver='".$save['tftpserver'].
+						"' WHERE id IN ('" . implode("','",$selected_items) . "')" );
 
 				break;
 			}
@@ -247,6 +280,34 @@ function actions_devices() {
 				</td>
 			</tr>";
 			$save_html = "<input type='button' value='" . __esc('Cancel', 'routerconfigs') . "' onClick='cactiReturnTo()'>&nbsp;<input type='submit' value='" . __esc('Continue', 'routerconfigs') . "' title='" . __esc('Disable Device(s)', 'routerconfigs') . "'>";
+			break;
+		case RCONFIG_DEVICE_EDIT:
+
+			 $devinfo= db_fetch_row('SELECT * FROM plugin_routerconfigs_devices WHERE id = ' .$device_array[0],false);
+
+			print"<tr>
+				  <td colspan='2' class='textArea'>
+                                        <p>" . __('Change the parameters and click \'Save\' to edit the following device(s).', 'routerconfigs') . "</p>
+                                        <p><ul>$device_list</ul></p>
+				</td>
+				</tr><tr><td colspan='2'>";
+
+			if(sizeof($device_array)>1) {
+				unset($rc_device_edit_fields['ipaddress']);
+				unset($rc_device_edit_fields['hostname']);
+			}
+			  draw_edit_form(
+		                array(
+                        'config' => array('no_form_tag' => true, 'form_name' => 'chk'),
+                        'fields' => inject_form_variables($rc_device_edit_fields, $devinfo)
+                	)
+		        );
+
+			print "</td></tr>";
+
+
+			 $save_html = "<input type='button' value='" . __esc('Cancel', 'routerconfigs') . "' onClick='cactiReturnTo()'>&nbsp;<input type='submit' value='" . __esc('Save', 'routerconfigs') . "' title='" . __esc('Save', 'routerconfigs') . "' class='ui-state-active'>";
+
 			break;
 		}
 	} else {

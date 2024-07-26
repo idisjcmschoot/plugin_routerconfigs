@@ -43,11 +43,13 @@ $rc_device_actions = array(
 	RCONFIG_DEVICE_BACKUP  => __('Backup', 'routerconfigs'),
 	RCONFIG_DEVICE_DELETE  => __('Delete', 'routerconfigs'),
 	RCONFIG_DEVICE_ENABLE  => __('Enable', 'routerconfigs'),
-	RCONFIG_DEVICE_DISABLE => __('Disable', 'routerconfigs')
+	RCONFIG_DEVICE_DISABLE => __('Disable', 'routerconfigs'),
+	RCONFIG_DEVICE_EDIT    => __('Bulk edit', 'routerconfigs'),
 );
 
 $rc_devtype_actions = array(
 	RCONFIG_DEVTYPE_DELETE => __('Delete', 'routerconfigs'),
+	RCONFIG_DEVTYPE_COPY => __('Copy', 'routerconfigs'),
 );
 
 $rc_connection_types_settings = array(
@@ -65,7 +67,7 @@ $rc_connection_types = array(
 $rc_schedules_backup = array(
 	RCONFIG_BACKUP_DAILY   => __('Daily', 'routerconfigs'),
 	RCONFIG_BACKUP_WEEKLY  => __('Weekly', 'routerconfigs'),
-	RCONFIG_BACKUP_10DAYS  => __('10 Days', 'routerconfigs'),
+	RCONFIG_BACKUP_10DAYS  => __('10 Days', 'routercoonfigs'),
 	RCONFIG_BACKUP_MONTHLY => __('Monthly', 'routerconfigs'),
 );
 

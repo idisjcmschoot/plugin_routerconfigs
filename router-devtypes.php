@@ -69,11 +69,18 @@ function actions_devicetypes () {
 						WHERE id = ?',
 						array($selected_items[$i]));
 				}
+			} else if(get_nfilter_request_var('drp_action') == '2') {
+				db_execute_prepared('INSERT INTO plugin_routerconfigs_devicetypes (name,promptuser,promptpass,connecttype,configfile,copytftp,version,promptconfirm,confirm,sleep,timeout,forceconfirm,checkendinconfig,anykey,elevated) 
+					SELECT CONCAT(name,\' copy\'),promptuser,promptpass,connecttype,configfile,copytftp,version,promptconfirm,confirm,sleep,timeout,forceconfirm,checkendinconfig,anykey,elevated FROM plugin_routerconfigs_devicetypes
+					WHERE id = ?',
+					array($selected_items[0]));
 			}
+
 		}
 
-		header('Location: router-devtypes.php?header=false');
-		exit;
+                header('Location: router-devtypes.php?header=false');
+                exit;
+
 	}
 
 	/* setup some variables */
@@ -110,15 +117,30 @@ function actions_devicetypes () {
 		if (get_nfilter_request_var('drp_action') == RCONFIG_DEVTYPE_DELETE) { /* Delete */
 			print "<tr>
 				<td colspan='2' class='textArea'>
-					<p>" . __('When you click \'Continue\', the following device(s) will be deleted.', 'routerconfigs') . "</p>
+					<p>" . __('When you click \'Continue\', the following device type(s) will be deleted.', 'routerconfigs') . "</p>
 					<ul>$devtype_list</ul>
 				</td>
 			</tr>";
+		$save_html = "<input type='button' value='" . __esc('Cancel', 'routerconfigs') . "' onClick='cactiReturnTo()'>&nbsp;<input type='submit' value='" . __esc('Continue', 'routerconfigs') . "' title='" . __esc('Delete device type(s)', 'routerconfigs') . "'>";
+
+		} elseif(get_nfilter_request_var('drp_action') == RCONFIG_DEVTYPE_COPY) { /* copy */
+
+			if(sizeof($devtype_array)>1){
+				 print "<tr><td class='even'><span class='textError'>You can only copy one device type at the time.</span></td></tr>\n";
+				 $save_html = "<input type='button' value='Return' onClick='cactiReturnTo()'>";
+			} else {
+				print "<tr>
+					<td colspan='2' class='textArea'>
+						<p>" . __('When you click \'Continue\', the following device type will be copied.','routerconfig') . "</p>
+						<ul>$devtype_list</ul>
+					</td>
+				</tr>";
+			}
+			$save_html = "<input type='button' value='" . __esc('Cancel', 'routerconfigs') . "' onClick='cactiReturnTo()'>&nbsp;<input type='submit' value='" . __esc('Continue', 'routerconfigs') . "' title='" . __esc('Copy device type', 'routerconfigs') . "'>";
 		}
 
-		$save_html = "<input type='button' value='" . __esc('Cancel', 'routerconfigs') . "' onClick='cactiReturnTo()'>&nbsp;<input type='submit' value='" . __esc('Continue', 'routerconfigs') . "' title='" . __esc('Delete Device(s)', 'routerconfigs') . "'>";
 	} else {
-		print "<tr><td class='even'><span class='textError'>You must select at least one device for this function.</span></td></tr>\n";
+		print "<tr><td class='even'><span class='textError'>You must select at least one device type for this function.</span></td></tr>\n";
 
 		$save_html = "<input type='button' value='Return' onClick='cactiReturnTo()'>";
 	}
@@ -213,6 +235,7 @@ function edit_devicetypes () {
 
 	form_save_button('router-devtypes.php');
 }
+
 
 function show_devicetypes() {
 	global $host, $username, $password, $command;
